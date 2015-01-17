@@ -24,12 +24,14 @@ import com.google.android.glass.widget.CardScrollView;
 import com.mirasense.scanditsdk.ScanditSDKAutoAdjustingBarcodePicker;
 import com.mirasense.scanditsdk.interfaces.ScanditSDK;
 import com.mirasense.scanditsdk.interfaces.ScanditSDKListener;
+import com.mirasense.scanditsdk.interfaces.ScanditSDKOnScanListener;
+import com.mirasense.scanditsdk.interfaces.ScanditSDKScanSession;
 
 
 /**
  * Scanner Activity - detects barcode and sends data to server for processing.
  */
-public class ScannerActivity extends Activity implements ScanditSDKListener {
+public class ScannerActivity extends Activity implements ScanditSDKListener, ScanditSDKOnScanListener {
 
     /**
      * {@link CardScrollView} to use as the main content view.
@@ -102,6 +104,8 @@ public class ScannerActivity extends Activity implements ScanditSDKListener {
 
         mBarcodePicker.getOverlayView().addListener(this);
 
+        mBarcodePicker.addOnScanListener(this);
+
         mBarcodePicker.startScanning();
 
 
@@ -110,71 +114,8 @@ public class ScannerActivity extends Activity implements ScanditSDKListener {
 
     }
 
-    /** Detect various gestures */
-    private GestureDetector createGestureDetector(Context context) {
-        GestureDetector gestureDetector = new GestureDetector(context);
 
-        //Create a base listener for generic gestures
-        gestureDetector.setBaseListener( new GestureDetector.BaseListener() {
-            @Override
-            public boolean onGesture(Gesture gesture) {
-                if (gesture == Gesture.TAP) {
-                    openOptionsMenu();
-                    return true;
-                } else if (gesture == Gesture.TWO_TAP) {
-                    // do something on two finger tap
-                    return true;
-                } else if (gesture == Gesture.SWIPE_RIGHT) {
-                    // do something on right (forward) swipe
-                    return true;
-                } else if (gesture == Gesture.SWIPE_LEFT) {
-                    // do something on left (backwards) swipe
-                    return true;
-                } else if (gesture == Gesture.SWIPE_DOWN){
-                    finish();
-                }
-                return false;
-            }
-        });
-        gestureDetector.setFingerListener(new GestureDetector.FingerListener() {
-            @Override
-            public void onFingerCountChanged(int previousCount, int currentCount) {
-                // do something on finger count changes
-            }
-        });
 
-        gestureDetector.setScrollListener(new GestureDetector.ScrollListener() {
-            @Override
-            public boolean onScroll(float displacement, float delta, float velocity) {
-                // do something on scrolling
-                return true;
-            }
-        });
-
-        return gestureDetector;
-    }
-
-    @Override
-    public boolean onGenericMotionEvent(MotionEvent event) {
-        if (mGestureDetector != null) {
-            return mGestureDetector.onMotionEvent(event);
-        }
-        return false;
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        if (mBarcodePicker != null) {
-            mBarcodePicker.startScanning();
-        }
-    }
-
-    @Override
-    protected void onPause() {
-        mBarcodePicker.stopScanning();
-        super.onPause();
-    }
 
     /**
      * Builds Scan Barcode Card
@@ -186,6 +127,24 @@ public class ScannerActivity extends Activity implements ScanditSDKListener {
         //card.addImage(R.drawable.logo); // add logo later? nah, make a viewport
         return card.getView();
     }
+
+
+    @Override
+    public void didScanBarcode(String barcode, String symbology) {
+        Log.d(Constants.TAG, "didScanbarcode");
+        // Remove non-relevant characters that might be displayed as rectangles
+        // on some devices. Be aware that you normally do not need to do this.
+        // Only special GS1 code formats contain such characters.
+        String cleanedBarcode = "";
+        for (int i = 0 ; i < barcode.length(); i++) {
+            if (barcode.charAt(i) > 30) {
+                cleanedBarcode += barcode.charAt(i);
+            }
+        }
+        Toast.makeText(this, symbology + ": " + cleanedBarcode, Toast.LENGTH_LONG).show();
+        Log.d(Constants.TAG, symbology + ": " + cleanedBarcode);
+    }
+
 
     /**
      * Adds a voice menu to the app
@@ -241,34 +200,100 @@ public class ScannerActivity extends Activity implements ScanditSDKListener {
     }
 
     @Override
+    public void didScan(ScanditSDKScanSession scanditSDKScanSession) {
+        Log.d(Constants.TAG, "did scan");
+    }
+
+    @Override
     public void didCancel() {
         mBarcodePicker.stopScanning();
         finish();
     }
 
-    @Override
-    public void didScanBarcode(String barcode, String symbology) {
-        // Remove non-relevant characters that might be displayed as rectangles
-        // on some devices. Be aware that you normally do not need to do this.
-        // Only special GS1 code formats contain such characters.
-        String cleanedBarcode = "";
-        for (int i = 0 ; i < barcode.length(); i++) {
-            if (barcode.charAt(i) > 30) {
-                cleanedBarcode += barcode.charAt(i);
-            }
-        }
-        Toast.makeText(this, symbology + ": " + cleanedBarcode, Toast.LENGTH_LONG).show();
-        Log.d(Constants.TAG, symbology + ": " + cleanedBarcode);
-    }
+
 
     @Override
     public void didManualSearch(String s) {
         // not used
+        Log.d(Constants.TAG, "didmanualSearch");
     }
 
     @Override
     public void onBackPressed() {
+        Log.d(Constants.TAG, "stopping scanning");
         mBarcodePicker.stopScanning();
         finish();
     }
+
+    @Override
+    public boolean onGenericMotionEvent(MotionEvent event) {
+        if (mGestureDetector != null) {
+            return mGestureDetector.onMotionEvent(event);
+        }
+        return false;
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (mBarcodePicker != null) {
+            mBarcodePicker.startScanning();
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        if (mBarcodePicker != null) {
+            mBarcodePicker.stopScanning();
+        }
+        super.onPause();
+    }
+
+
+    /** Detect various gestures */
+    private GestureDetector createGestureDetector(Context context) {
+        GestureDetector gestureDetector = new GestureDetector(context);
+
+        //Create a base listener for generic gestures
+        gestureDetector.setBaseListener( new GestureDetector.BaseListener() {
+            @Override
+            public boolean onGesture(Gesture gesture) {
+                if (gesture == Gesture.TAP) {
+                    openOptionsMenu();
+                    return true;
+                } else if (gesture == Gesture.TWO_TAP) {
+                    // do something on two finger tap
+                    return true;
+                } else if (gesture == Gesture.SWIPE_RIGHT) {
+                    // do something on right (forward) swipe
+                    return true;
+                } else if (gesture == Gesture.SWIPE_LEFT) {
+                    // do something on left (backwards) swipe
+                    return true;
+                } else if (gesture == Gesture.SWIPE_DOWN){
+                    finish();
+                }
+                return false;
+            }
+        });
+        gestureDetector.setFingerListener(new GestureDetector.FingerListener() {
+            @Override
+            public void onFingerCountChanged(int previousCount, int currentCount) {
+                // do something on finger count changes
+            }
+        });
+
+        gestureDetector.setScrollListener(new GestureDetector.ScrollListener() {
+            @Override
+            public boolean onScroll(float displacement, float delta, float velocity) {
+                // do something on scrolling
+                return true;
+            }
+        });
+
+        return gestureDetector;
+    }
+
+
 }
+
