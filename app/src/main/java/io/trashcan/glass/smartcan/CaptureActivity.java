@@ -1,17 +1,17 @@
 /*
- * Copyright (C) 2014 ZXing authors
+ * SmartCan : Glass App.
+ * @author Ivan Smirnov (http://ivansmirnov.name)
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * This is a modified version of the ZXIng sample Glass Project.
+ * It scans a QR barcode in the form (Integer UID, Integer code) where
+ * the uid is a unique id for a trash or recycleable item, and the code specifies
+ * which it is. This activity then sends a POST request to a Node.JS server on an intel
+ * edison, which controls a smart trash can.
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * Feel free to use and modify this code at your own risk, under the original ZXing
+ * license.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Credits to original authors of ZXing library: 2014 ZXing authors
  */
 
 package io.trashcan.glass.smartcan;
@@ -185,16 +185,11 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
             Log.d("QR RESULT", qrString);
             setResult(RESULT_OK, scanResult);
             finish();
-        } else { // TODO confirm error handling works
+        } else {
             TextView statusView = (TextView) findViewById(R.id.status_view);
             String text = result.getText();
 
-            Log.d("QR RESULT 2", text);
-            // TODO inject code here to perform async POST to mongo server
-
-            // branch here based on second value of text - either trash or recycle
-
-            // idiot proofing
+            // error proofing
             int uid;
             int code;
             String prompt = "";
@@ -225,6 +220,7 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
             // post to local edison - make it ready
             // TODO figure out how to POST a json in android/java
             
+            
             // POST to mongo server - this user, and the uid of the item, plus the code (in case we haven't seen it yet
             // TODO
 
@@ -240,7 +236,7 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
         statusView.setVisibility(View.VISIBLE);
     }
 
-    private void handleResult(Result result) { // TODO edit me - maybe do intent on www.trashcan.io? automatic POST, etc?
+    private void handleResult(Result result) { //
     Log.d("QR RESULT", "handling result");
     ParsedResult parsed = ResultParser.parseResult(result);
     Intent intent;
@@ -314,23 +310,12 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
         return gestureDetector;
     }
 
-/*    @Override
-    public void onBackPressed() {
-        Log.d(TAG, "stopping scanning");
-        //mBarcodePicker.stopScanning();
-        //finish();
-        // do something here?
-        reset(); // may be extra
-
-    }*/
-
     // menu code
     @Override
     public boolean onMenuItemSelected(int featureId, MenuItem item) {
         if (featureId == WindowUtils.FEATURE_VOICE_COMMANDS || featureId ==  Window.FEATURE_OPTIONS_PANEL) {
             switch (item.getItemId()) {
                 case R.id.find_smartcan:
-                    processAction(Constants.FIND_SMARTCAN);
                     findSmartcan();
                     break;
                 case R.id.cancel:
@@ -363,30 +348,7 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
         startActivity(homeIntent);
     }
 
-    /**
-     * process a user action - contact the server, get result, etc.
-     * */
-    public void processAction(String action){
-        // branch on type
-        switch (action) {
-            case Constants.FIND_SMARTCAN:
-                Log.d(Constants.TAG, "trash");
-                break;
 
-            case Constants.QUIT_APP:
-                Log.d(Constants.TAG, "quit app");
-                break;
-
-            case Constants.CANCEL:
-                Log.d(Constants.TAG, "cancel");
-                //break;
-                return;
-
-            default:
-                Log.d(Constants.TAG, "unknown action!! ABORT.");
-        }
-
-    }
 
     /**
      * Adds a voice menu to the app
@@ -399,6 +361,4 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
         }
         return super.onCreatePanelMenu(featureId, menu);
     }
-
-
 }
