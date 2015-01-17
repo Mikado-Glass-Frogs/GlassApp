@@ -105,7 +105,7 @@ final class DecodeRunnable implements Runnable, Camera.PreviewCallback {
       hints = new EnumMap<>(DecodeHintType.class);
       hints.put(DecodeHintType.POSSIBLE_FORMATS,
           Arrays.asList(BarcodeFormat.AZTEC, BarcodeFormat.QR_CODE, BarcodeFormat.DATA_MATRIX, BarcodeFormat.CODE_128, BarcodeFormat.UPC_A, BarcodeFormat.UPC_E));
-    }
+    } // TODO limit to only QR codes?
 
     @Override
     public void handleMessage(Message message) {

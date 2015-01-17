@@ -48,7 +48,7 @@ import com.google.zxing.client.result.URIParsedResult;
 import java.io.IOException;
 
 /**
- * @author Sean Owen
+ * @author Sean Owen, heavily modified by Ivan Smirnov for PennApps 2015
  */
 public final class CaptureActivity extends Activity implements SurfaceHolder.Callback {
 
@@ -176,23 +176,27 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
     reset();
   }
 
-  void setResult(Result result) {
-    if (returnResult) {
-      Intent scanResult = new Intent("com.google.zxing.client.android.SCAN");
-      scanResult.putExtra("SCAN_RESULT", result.getText());
-      setResult(RESULT_OK, scanResult);
-      finish();
-    } else {
-      TextView statusView = (TextView) findViewById(R.id.status_view);
-      String text = result.getText();
-      statusView.setText(text);
-      statusView.setTextSize(TypedValue.COMPLEX_UNIT_SP, Math.max(14, 56 - text.length() / 4));
-      statusView.setVisibility(View.VISIBLE);
-      this.result = result;
+    void setResult(Result result) {
+        Log.d("QR RESULT", "setting result");
+        if (returnResult) {
+            Intent scanResult = new Intent("com.google.zxing.client.android.SCAN");
+            scanResult.putExtra("SCAN_RESULT", result.getText());
+            String qrString = result.getText();
+            Log.d("QR RESULT", qrString);
+            setResult(RESULT_OK, scanResult);
+            finish();
+        } else { // TODO confirm error handling works
+            TextView statusView = (TextView) findViewById(R.id.status_view);
+            String text = result.getText();
+            statusView.setText(text);
+            statusView.setTextSize(TypedValue.COMPLEX_UNIT_SP, Math.max(14, 56 - text.length() / 4));
+            statusView.setVisibility(View.VISIBLE);
+            this.result = result;
+        }
     }
-  }
 
-  private void handleResult(Result result) {
+  private void handleResult(Result result) { // TODO edit me - maybe do intent on www.trashcan.io? automatic POST, etc?
+    Log.d("QR RESULT", "handling result");
     ParsedResult parsed = ResultParser.parseResult(result);
     Intent intent;
     if (parsed.getType() == ParsedResultType.URI) {
@@ -265,14 +269,15 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
         return gestureDetector;
     }
 
-    @Override
+/*    @Override
     public void onBackPressed() {
-        Log.d(Constants.TAG, "stopping scanning");
+        Log.d(TAG, "stopping scanning");
         //mBarcodePicker.stopScanning();
         //finish();
         // do something here?
+        reset(); // may be extra
 
-    }
+    }*/
 
     // menu code
     @Override
