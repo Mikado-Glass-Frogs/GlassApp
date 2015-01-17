@@ -2,12 +2,12 @@
 <resources>
 
     <string name="app_name">SmartCan</string>
-    <string name="title_activity_scanner">Scan Barcode</string>
+    <string name="title_activity_scanner">SmartCan Scanner</string>
     <string name="voice_trigger">Trash this</string> <!-- custom voice trigger for app -->
 
     <!-- menu in scanner -->
-    <string name="trash">Trash</string>
-    <string name="recycle">Recycle</string>
+    <string name="find_smartcan">Find a SmartCan</string>
+    <string name="quit_app">Quit App</string>
     <string name="cancel">Cancel</string>
 
 

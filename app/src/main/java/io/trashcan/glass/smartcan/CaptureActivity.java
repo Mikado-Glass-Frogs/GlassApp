@@ -192,7 +192,34 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
             Log.d("QR RESULT 2", text);
             // TODO inject code here to perform async POST to mongo server
 
-            statusView.setText(text);
+            // branch here based on second value of text - either trash or recycle
+
+            String[] params = text.split(",");
+            int uid = Integer.parseInt(params[0]);
+
+            int code = Integer.parseInt(params[1]);
+            Log.d(TAG, String.format("UID: %d, code: %d \n", uid, code));
+            String prompt = "";
+
+            switch (code) {
+                case 0:
+                    prompt = "Alas, this is trash!";
+                    break;
+                case 1:
+                    prompt = "Yay! This can be recycled";
+                    break;
+                default:
+                    prompt = "Unknown code, use your best judgement";
+            }
+
+            // post to local edison - make it ready
+            
+            // POST to mongo server - this user, and the uid of the item, plus the code (in case we haven't seen it yet
+            // TODO
+
+
+
+            statusView.setText(prompt);
             statusView.setTextSize(TypedValue.COMPLEX_UNIT_SP, Math.max(14, 56 - text.length() / 4));
             statusView.setVisibility(View.VISIBLE);
             this.result = result;
@@ -288,14 +315,15 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
     public boolean onMenuItemSelected(int featureId, MenuItem item) {
         if (featureId == WindowUtils.FEATURE_VOICE_COMMANDS || featureId ==  Window.FEATURE_OPTIONS_PANEL) {
             switch (item.getItemId()) {
-                case R.id.trash:
-                    processAction(Constants.TRASH);
-                    break;
-                case R.id.recycle:
-                    processAction(Constants.RECYCLE);
+                case R.id.find_smartcan:
+                    processAction(Constants.FIND_SMARTCAN);
+                    findSmartcan();
                     break;
                 case R.id.cancel:
-                    processAction(Constants.CANCEL);
+                    closeOptionsMenu();
+                    break;
+                case R.id.quit_app:
+                    finish();
                     break;
             }
             return true;
@@ -304,17 +332,24 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
     }
 
     /**
+     *  Locate smart trash can and direct user to it.
+     *  */
+    private void findSmartcan() {
+        Log.d(Constants.TAG, "locating smartcan");
+    }
+
+    /**
      * process a user action - contact the server, get result, etc.
      * */
     public void processAction(String action){
         // branch on type
         switch (action) {
-            case Constants.TRASH:
+            case Constants.FIND_SMARTCAN:
                 Log.d(Constants.TAG, "trash");
                 break;
 
-            case Constants.RECYCLE:
-                Log.d(Constants.TAG, "recycle");
+            case Constants.QUIT_APP:
+                Log.d(Constants.TAG, "quit app");
                 break;
 
             case Constants.CANCEL:

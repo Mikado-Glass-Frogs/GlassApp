@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:id="@+id/trash"
-        android:title="@string/trash" />
-    <item android:id="@+id/recycle"
-        android:title="@string/recycle" />
+    <item android:id="@+id/find_smartcan"
+        android:title="@string/find_smartcan" />
     <item android:id="@+id/cancel"
         android:title="@string/cancel" />
+    <item android:id="@+id/quit_app"
+        android:title="@string/quit_app" />
 </menu>
