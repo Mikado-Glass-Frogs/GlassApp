@@ -16,7 +16,6 @@ import com.google.zxing.common.HybridBinarizer;
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -31,8 +30,8 @@ public class TestReader {
     public static void main(String[] args) {
 
 
-        Thread t = new QRThread(0);
-        t.start();
+        //Thread t = new QRThread(0);
+        // t.start();
 
     }
 
@@ -94,16 +93,9 @@ public class TestReader {
                 fileData = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
             }
 
-            String decodedCode;
-            try {
-                decodedCode = readCode(fileData, charset, hintMap);
-            } catch (NotFoundException | IOException e) {
-                decodedCode = "Invalid";
-            }
+            String decodedCode = readCode(fileData, charset, hintMap);
 
-            // for debugging purpose
-            System.out.println("Data read from code: " + decodedCode);
+            Log.d(TAG , "Data read from code: " + decodedCode);
         }
     }
-
 }

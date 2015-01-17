@@ -3,7 +3,10 @@ package io.trashcan.glass.smartcan;
 
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.os.Environment;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -13,7 +16,6 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.AdapterView;
-import android.widget.Toast;
 
 import com.google.android.glass.app.Card;
 import com.google.android.glass.touchpad.Gesture;
@@ -21,15 +23,25 @@ import com.google.android.glass.touchpad.GestureDetector;
 import com.google.android.glass.view.WindowUtils;
 import com.google.android.glass.widget.CardScrollAdapter;
 import com.google.android.glass.widget.CardScrollView;
-import com.mirasense.scanditsdk.ScanditSDKAutoAdjustingBarcodePicker;
-import com.mirasense.scanditsdk.interfaces.ScanditSDK;
-import com.mirasense.scanditsdk.interfaces.ScanditSDKListener;
-import com.mirasense.scanditsdk.interfaces.ScanditSDKOnScanListener;
-import com.mirasense.scanditsdk.interfaces.ScanditSDKScanSession;
+import com.google.zxing.BinaryBitmap;
+import com.google.zxing.LuminanceSource;
+import com.google.zxing.MultiFormatReader;
+import com.google.zxing.NotFoundException;
+import com.google.zxing.RGBLuminanceSource;
+import com.google.zxing.Result;
+import com.google.zxing.common.HybridBinarizer;
+import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel;
+
+import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
+
+import static com.google.zxing.EncodeHintType.ERROR_CORRECTION;
+
 /**
  * Scanner Activity - detects barcode and sends data to server for processing.
  */
-public class ScannerActivity extends Activity implements ScanditSDKListener, ScanditSDKOnScanListener {
+public class ScannerActivity extends Activity {
 
     /**
      * {@link CardScrollView} to use as the main content view.
@@ -38,14 +50,25 @@ public class ScannerActivity extends Activity implements ScanditSDKListener, Sca
     private GestureDetector mGestureDetector;
     private View mView;
 
-    // The main object for recognizing a displaying barcodes.
-    private ScanditSDK mBarcodePicker;
+
+
+
 
 
     @Override
     protected void onCreate(Bundle bundle) {
         super.onCreate(bundle);
 
+        Log.d(Constants.TAG, "about to read image");
+
+        int testImageCount = 6;
+        for (int i = 0; i < testImageCount; i++) {
+            Log.d(Constants.TAG, "reading image number " + Integer.toString(i));
+            readImage(i);
+        }
+
+
+        Log.d(Constants.TAG, "done reading image");
         // keep screen on
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         getWindow().requestFeature(WindowUtils.FEATURE_VOICE_COMMANDS);
@@ -90,29 +113,76 @@ public class ScannerActivity extends Activity implements ScanditSDKListener, Sca
         });
 
         mGestureDetector = createGestureDetector(this);
-        //setContentView(mCardScroller);
+        setContentView(mCardScroller);
 
-        ScanditSDKAutoAdjustingBarcodePicker mBarcodePicker = new ScanditSDKAutoAdjustingBarcodePicker(
-                this, Constants.scanditSdkAppKey, ScanditSDKAutoAdjustingBarcodePicker.CAMERA_FACING_BACK); // or facing back?
-
-
-        // TODO add menu listener
-
-        // mBarcodePicker.getRootView().addListener
-
-        mBarcodePicker.getOverlayView().addListener(this);
-
-        mBarcodePicker.addOnScanListener(this);
-
-        mBarcodePicker.startScanning();
-
-
-        // set the view to the barcode picker
-        setContentView(mBarcodePicker);
 
     }
 
 
+    // ====== MANUAL WORK ==========
+
+    // perform image processing on the image identified in the parameter
+    // filePath extract the data then parse it and return String
+    public static String readCode(Bitmap fileData, String charset, Map hintMap) {
+        String result;
+        Log.d(Constants.TAG, "readCode called");
+
+        // convert to BinaryBitmap
+        BinaryBitmap data = convertToBinaryBitmap(fileData);
+
+        Log.d(Constants.TAG, "done converting");
+
+        Result qrCodeResult = null;
+        try {
+            qrCodeResult = new MultiFormatReader().decode(data,
+                    hintMap);
+            Log.d(Constants.TAG, "read successfully");
+        } catch (NotFoundException e) {
+            e.printStackTrace();
+            Log.d(Constants.TAG, "not found");
+            return null;
+        }
+        result = qrCodeResult.getText();
+
+        return result;
+    }
+
+    private static BinaryBitmap convertToBinaryBitmap(Bitmap bMap) {
+        if (bMap == null) {
+            Log.d(Constants.TAG, "NULL bitmap sent to conversion. FIX!");
+        }
+        int[] intArray = new int[bMap.getWidth() * bMap.getHeight()];
+        //copy pixel data from the Bitmap into the 'intArray' array
+        bMap.getPixels(intArray, 0, bMap.getWidth(), 0, 0, bMap.getWidth(), bMap.getHeight());
+        LuminanceSource source = new RGBLuminanceSource(bMap.getWidth(), bMap.getHeight(), intArray);
+        BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
+        return bitmap;
+    }
+
+    private String readImage(int num) {
+
+        String charset = "UTF-8";
+        Map hintMap = new HashMap();
+        hintMap.put(ERROR_CORRECTION, ErrorCorrectionLevel.L);
+        // TODO add QR code and 1D hint map - see barcode eye
+
+        // access saved image
+        Log.d(Constants.TAG, "getting path");
+        String sdcardPath = Environment.getExternalStorageDirectory().toString();
+        File imgFile = new File(sdcardPath + "/Pictures/SmartCan/test" + Integer.toString(num) +".jpg"); // TODO make path permanent
+        Log.d(Constants.TAG, imgFile.getAbsolutePath());
+        Bitmap fileData = null;
+        if (imgFile.exists()) {
+            Log.d(Constants.TAG, "file exists");
+            fileData = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
+        }
+
+        String decodedCode = readCode(fileData, charset, hintMap);
+        Log.d(Constants.TAG, String.format("Data read from code # %d: " + decodedCode));
+        return decodedCode;
+    }
+
+    // ===============
 
 
     /**
@@ -127,21 +197,7 @@ public class ScannerActivity extends Activity implements ScanditSDKListener, Sca
     }
 
 
-    @Override
-    public void didScanBarcode(String barcode, String symbology) {
-        Log.d(Constants.TAG, "didScanbarcode");
-        // Remove non-relevant characters that might be displayed as rectangles
-        // on some devices. Be aware that you normally do not need to do this.
-        // Only special GS1 code formats contain such characters.
-        String cleanedBarcode = "";
-        for (int i = 0 ; i < barcode.length(); i++) {
-            if (barcode.charAt(i) > 30) {
-                cleanedBarcode += barcode.charAt(i);
-            }
-        }
-        Toast.makeText(this, symbology + ": " + cleanedBarcode, Toast.LENGTH_LONG).show();
-        Log.d(Constants.TAG, symbology + ": " + cleanedBarcode);
-    }
+
 
 
     /**
@@ -162,6 +218,7 @@ public class ScannerActivity extends Activity implements ScanditSDKListener, Sca
         switch (action) {
             case Constants.TRASH:
                 Log.d(Constants.TAG, "trash");
+                //readImage();
                 break;
 
             case Constants.RECYCLE:
@@ -197,31 +254,10 @@ public class ScannerActivity extends Activity implements ScanditSDKListener, Sca
         return super.onMenuItemSelected(featureId, item);
     }
 
-    @Override
-    public void didScan(ScanditSDKScanSession scanditSDKScanSession) {
-        Log.d(Constants.TAG, "did scan");
-    }
-
-    @Override
-    public void didCancel() {
-        mBarcodePicker.stopScanning();
-        finish();
-    }
 
 
 
-    @Override
-    public void didManualSearch(String s) {
-        // not used
-        Log.d(Constants.TAG, "didmanualSearch");
-    }
 
-    @Override
-    public void onBackPressed() {
-        Log.d(Constants.TAG, "stopping scanning");
-        mBarcodePicker.stopScanning();
-        finish();
-    }
 
     @Override
     public boolean onGenericMotionEvent(MotionEvent event) {
@@ -231,21 +267,7 @@ public class ScannerActivity extends Activity implements ScanditSDKListener, Sca
         return false;
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        if (mBarcodePicker != null) {
-            mBarcodePicker.startScanning();
-        }
-    }
 
-    @Override
-    protected void onPause() {
-        if (mBarcodePicker != null) {
-            mBarcodePicker.stopScanning();
-        }
-        super.onPause();
-    }
 
 
     /** Detect various gestures */
