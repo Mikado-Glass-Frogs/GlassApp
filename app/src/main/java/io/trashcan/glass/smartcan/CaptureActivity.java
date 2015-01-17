@@ -188,6 +188,10 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
         } else { // TODO confirm error handling works
             TextView statusView = (TextView) findViewById(R.id.status_view);
             String text = result.getText();
+
+            Log.d("QR RESULT 2", text);
+            // TODO inject code here to perform async POST to mongo server
+
             statusView.setText(text);
             statusView.setTextSize(TypedValue.COMPLEX_UNIT_SP, Math.max(14, 56 - text.length() / 4));
             statusView.setVisibility(View.VISIBLE);
