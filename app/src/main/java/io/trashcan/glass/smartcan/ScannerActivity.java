@@ -93,7 +93,7 @@ public class ScannerActivity extends Activity implements ScanditSDKListener {
         //setContentView(mCardScroller);
 
         ScanditSDKAutoAdjustingBarcodePicker mBarcodePicker = new ScanditSDKAutoAdjustingBarcodePicker(
-                this, Constants.scanditSdkAppKey, ScanditSDKAutoAdjustingBarcodePicker.CAMERA_FACING_FRONT); // or facing back?
+                this, Constants.scanditSdkAppKey, ScanditSDKAutoAdjustingBarcodePicker.CAMERA_FACING_BACK); // or facing back?
 
 
         // TODO add menu listener
@@ -101,6 +101,8 @@ public class ScannerActivity extends Activity implements ScanditSDKListener {
         // mBarcodePicker.getRootView().addListener
 
         mBarcodePicker.getOverlayView().addListener(this);
+
+        mBarcodePicker.startScanning();
 
 
         // set the view to the barcode picker
@@ -163,12 +165,14 @@ public class ScannerActivity extends Activity implements ScanditSDKListener {
     @Override
     protected void onResume() {
         super.onResume();
-        mCardScroller.activate();
+        if (mBarcodePicker != null) {
+            mBarcodePicker.startScanning();
+        }
     }
 
     @Override
     protected void onPause() {
-        mCardScroller.deactivate();
+        mBarcodePicker.stopScanning();
         super.onPause();
     }
 
@@ -201,6 +205,16 @@ public class ScannerActivity extends Activity implements ScanditSDKListener {
         switch (action) {
             case Constants.TRASH:
                 Log.d(Constants.TAG, "trash");
+                break;
+
+            case Constants.RECYCLE:
+                Log.d(Constants.TAG, "recycle");
+                break;
+
+            case Constants.CANCEL:
+                Log.d(Constants.TAG, "cancel");
+                //break;
+                return;
 
             default:
                 Log.d(Constants.TAG, "unknown action!! ABORT.");
@@ -250,5 +264,11 @@ public class ScannerActivity extends Activity implements ScanditSDKListener {
     @Override
     public void didManualSearch(String s) {
         // not used
+    }
+
+    @Override
+    public void onBackPressed() {
+        mBarcodePicker.stopScanning();
+        finish();
     }
 }
