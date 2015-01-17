@@ -1,8 +1,10 @@
 package io.trashcan.glass.smartcan;
 
+
 import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -164,7 +166,16 @@ public class ScannerActivity extends Activity {
         return super.onCreatePanelMenu(featureId, menu);
     }
 
+    /* process a user action - contact the server, get result, etc. */
     public void processAction(String action){
+        // branch on type
+        switch (action) {
+            case Constants.TRASH:
+                Log.d(Constants.TAG, "trash");
+
+            default:
+                Log.d(Constants.TAG, "unknown action!! ABORT.");
+        }
 
     }
     @Override

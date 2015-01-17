@@ -7,6 +7,8 @@ public class Constants {
     /* tag for debugging. */
     public static String TAG = "GlassCan";
 
-    public static String CANCEL = "cancel";
+    public final static String TRASH = "trash";
+    public final static String RECYCLE = "recycle";
+    public final static String CANCEL = "cancel";
 
 }
