@@ -98,7 +98,7 @@ public class ScannerActivity extends Activity implements ScanditSDKListener {
 
         // TODO add menu listener
 
-        mBarcodePicker.get
+        // mBarcodePicker.getRootView().addListener
 
         mBarcodePicker.getOverlayView().addListener(this);
 
