@@ -17,6 +17,7 @@
 package io.trashcan.glass.smartcan;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.hardware.Camera;
 import android.net.Uri;
@@ -24,6 +25,9 @@ import android.os.Bundle;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.KeyEvent;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
@@ -31,6 +35,9 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.TextView;
 
+import com.google.android.glass.touchpad.Gesture;
+import com.google.android.glass.touchpad.GestureDetector;
+import com.google.android.glass.view.WindowUtils;
 import com.google.zxing.Result;
 import com.google.zxing.client.result.ParsedResult;
 import com.google.zxing.client.result.ParsedResultType;
@@ -45,7 +52,7 @@ import java.io.IOException;
  */
 public final class CaptureActivity extends Activity implements SurfaceHolder.Callback {
 
-  private static final String TAG = CaptureActivity.class.getSimpleName();
+  private static final String TAG = Constants.TAG + "Vania";
   private static final String SCAN_ACTION = "com.google.zxing.client.android.SCAN";
 
   private boolean hasSurface;
@@ -54,6 +61,7 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
   private Camera camera;
   private DecodeRunnable decodeRunnable;
   private Result result;
+  private GestureDetector mGestureDetector;
 
   @Override
   public void onCreate(Bundle icicle) {
@@ -66,6 +74,10 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
 
     Window window = getWindow();
     window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+    window.requestFeature(WindowUtils.FEATURE_VOICE_COMMANDS); // for voice menu
+
+    mGestureDetector = createGestureDetector(this);
+
     setContentView(R.layout.capture);
   }
 
@@ -198,5 +210,126 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
     result = null;
     decodeRunnable.startScanning();
   }
+
+    // Gesture code
+    @Override
+    public boolean onGenericMotionEvent(MotionEvent event) {
+        if (mGestureDetector != null) {
+            return mGestureDetector.onMotionEvent(event);
+        }
+        return false;
+    }
+
+
+    /** Detect various gestures */
+    private GestureDetector createGestureDetector(Context context) {
+        GestureDetector gestureDetector = new GestureDetector(context);
+
+        //Create a base listener for generic gestures
+        gestureDetector.setBaseListener( new GestureDetector.BaseListener() {
+            @Override
+            public boolean onGesture(Gesture gesture) {
+                if (gesture == Gesture.TAP) {
+                    openOptionsMenu();
+                    return true;
+                } else if (gesture == Gesture.TWO_TAP) {
+                    // do something on two finger tap
+                    return true;
+                } else if (gesture == Gesture.SWIPE_RIGHT) {
+                    // do something on right (forward) swipe
+                    return true;
+                } else if (gesture == Gesture.SWIPE_LEFT) {
+                    // do something on left (backwards) swipe
+                    return true;
+                } else if (gesture == Gesture.SWIPE_DOWN){
+                    finish();
+                }
+                return false;
+            }
+        });
+        gestureDetector.setFingerListener(new GestureDetector.FingerListener() {
+            @Override
+            public void onFingerCountChanged(int previousCount, int currentCount) {
+                // do something on finger count changes
+            }
+        });
+
+        gestureDetector.setScrollListener(new GestureDetector.ScrollListener() {
+            @Override
+            public boolean onScroll(float displacement, float delta, float velocity) {
+                // do something on scrolling
+                return true;
+            }
+        });
+
+        return gestureDetector;
+    }
+
+    @Override
+    public void onBackPressed() {
+        Log.d(Constants.TAG, "stopping scanning");
+        //mBarcodePicker.stopScanning();
+        //finish();
+        // do something here?
+
+    }
+
+    // menu code
+    @Override
+    public boolean onMenuItemSelected(int featureId, MenuItem item) {
+        if (featureId == WindowUtils.FEATURE_VOICE_COMMANDS || featureId ==  Window.FEATURE_OPTIONS_PANEL) {
+            switch (item.getItemId()) {
+                case R.id.trash:
+                    processAction(Constants.TRASH);
+                    break;
+                case R.id.recycle:
+                    processAction(Constants.RECYCLE);
+                    break;
+                case R.id.cancel:
+                    processAction(Constants.CANCEL);
+                    break;
+            }
+            return true;
+        }
+        return super.onMenuItemSelected(featureId, item);
+    }
+
+    /**
+     * process a user action - contact the server, get result, etc.
+     * */
+    public void processAction(String action){
+        // branch on type
+        switch (action) {
+            case Constants.TRASH:
+                Log.d(Constants.TAG, "trash");
+                break;
+
+            case Constants.RECYCLE:
+                Log.d(Constants.TAG, "recycle");
+                break;
+
+            case Constants.CANCEL:
+                Log.d(Constants.TAG, "cancel");
+                //break;
+                return;
+
+            default:
+                Log.d(Constants.TAG, "unknown action!! ABORT.");
+        }
+
+    }
+
+    /**
+     * Adds a voice menu to the app
+     * */
+    @Override
+    public boolean onCreatePanelMenu(int featureId, Menu menu){
+        if (featureId == WindowUtils.FEATURE_VOICE_COMMANDS || featureId ==  Window.FEATURE_OPTIONS_PANEL) {
+            getMenuInflater().inflate(R.menu.main, menu);
+            return true;
+        }
+        return super.onCreatePanelMenu(featureId, menu);
+    }
+
 
 }
