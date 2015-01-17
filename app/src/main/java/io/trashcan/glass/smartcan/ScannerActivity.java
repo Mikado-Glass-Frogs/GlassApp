@@ -26,8 +26,6 @@ import com.mirasense.scanditsdk.interfaces.ScanditSDK;
 import com.mirasense.scanditsdk.interfaces.ScanditSDKListener;
 import com.mirasense.scanditsdk.interfaces.ScanditSDKOnScanListener;
 import com.mirasense.scanditsdk.interfaces.ScanditSDKScanSession;
-
-
 /**
  * Scanner Activity - detects barcode and sends data to server for processing.
  */
