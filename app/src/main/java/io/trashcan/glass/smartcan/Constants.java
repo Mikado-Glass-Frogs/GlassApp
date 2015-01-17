@@ -11,4 +11,6 @@ public class Constants {
     public final static String RECYCLE = "recycle";
     public final static String CANCEL = "cancel";
 
+    public static final String scanditSdkAppKey = "GstmVgrLaQY8TLRhmRI0J9b0lmjED2i9NG17PRaxjbQ";
+
 }

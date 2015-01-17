@@ -1,6 +1,5 @@
 package io.trashcan.glass.smartcan;
 
-
 import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
@@ -9,7 +8,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.AdapterView;
@@ -18,18 +16,14 @@ import com.google.android.glass.app.Card;
 import com.google.android.glass.touchpad.Gesture;
 import com.google.android.glass.touchpad.GestureDetector;
 import com.google.android.glass.view.WindowUtils;
-import com.google.android.glass.widget.CardScrollAdapter;
 import com.google.android.glass.widget.CardScrollView;
-import com.mirasense.scanditsdk.ScanditSDKAutoAdjustingBarcodePicker;
-
 
 /**
- * Scanner Activity - detects barcode and sends data to server for processing.
- */
-public class ScannerActivity extends Activity {
-
+ *
+ * */
+public class ScanBarcodeActivity extends Activity  {
     /**
-     * {@link CardScrollView} to use as the main content view.
+     * {@link com.google.android.glass.widget.CardScrollView} to use as the main content view.
      */
     private CardScrollView mCardScroller;
     private GestureDetector mGestureDetector;
@@ -43,34 +37,6 @@ public class ScannerActivity extends Activity {
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         getWindow().requestFeature(WindowUtils.FEATURE_VOICE_COMMANDS);
 
-        // set view
-        mView = buildView();
-
-        mCardScroller = new CardScrollView(this);
-        mCardScroller.setAdapter(new CardScrollAdapter() {
-            @Override
-            public int getCount() {
-                return 1;
-            }
-
-            @Override
-            public Object getItem(int position) {
-                return mView;
-            }
-
-            @Override
-            public View getView(int position, View convertView, ViewGroup parent) {
-                return mView;
-            }
-
-            @Override
-            public int getPosition(Object item) {
-                if (mView.equals(item)) {
-                    return 0;
-                }
-                return AdapterView.INVALID_POSITION;
-            }
-        });
 
 
 
@@ -84,11 +50,6 @@ public class ScannerActivity extends Activity {
 
         mGestureDetector = createGestureDetector(this);
         setContentView(mCardScroller);
-
-        ScanditSDKAutoAdjustingBarcodePicker picker = new ScanditSDKAutoAdjustingBarcodePicker(
-                this, Constants.scanditSdkAppKey, ScanditSDKAutoAdjustingBarcodePicker.CAMERA_FACING_FRONT); // or facing back?
-
-
     }
 
     /** Detect various gestures */
