@@ -3,18 +3,21 @@ package io.trashcan.glass.smartcan;
 import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.view.WindowManager;
 import android.widget.AdapterView;
 
+import com.google.android.glass.app.Card;
 import com.google.android.glass.touchpad.Gesture;
 import com.google.android.glass.touchpad.GestureDetector;
 import com.google.android.glass.view.WindowUtils;
-import com.google.android.glass.widget.CardBuilder;
 import com.google.android.glass.widget.CardScrollAdapter;
 import com.google.android.glass.widget.CardScrollView;
-
 /**
  * Scanner Activity - detects barcode and sends data to server for processing.
  */
@@ -119,6 +122,14 @@ public class ScannerActivity extends Activity {
     }
 
     @Override
+    public boolean onGenericMotionEvent(MotionEvent event) {
+        if (mGestureDetector != null) {
+            return mGestureDetector.onMotionEvent(event);
+        }
+        return false;
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
         mCardScroller.activate();
@@ -131,11 +142,47 @@ public class ScannerActivity extends Activity {
     }
 
     /**
-     * Builds a Glass styled "Hello World!" view using the {@link CardBuilder} class.
+     * Builds Scan Barcode Card
      */
     private View buildView() {
-        CardBuilder card = new CardBuilder(this, CardBuilder.Layout.TEXT);
+        Card card = new Card(this);
+        card.setText(R.string.app_name);
+        card.setImageLayout(Card.ImageLayout.LEFT);
+        //card.addImage(R.drawable.logo); // add logo later? nah, make a viewport
         return card.getView();
     }
 
+    /**
+     * Adds a voice menu to the app
+     * */
+    @Override
+    public boolean onCreatePanelMenu(int featureId, Menu menu){
+        if (featureId == WindowUtils.FEATURE_VOICE_COMMANDS || featureId ==  Window.FEATURE_OPTIONS_PANEL) {
+            getMenuInflater().inflate(R.menu.main, menu);
+            return true;
+        }
+        return super.onCreatePanelMenu(featureId, menu);
+    }
+
+    public void processAction(String action){
+
+    }
+    @Override
+    public boolean onMenuItemSelected(int featureId, MenuItem item) {
+        if (featureId == WindowUtils.FEATURE_VOICE_COMMANDS || featureId ==  Window.FEATURE_OPTIONS_PANEL) {
+            switch (item.getItemId()) {
+                case R.id.trash:
+                    processAction(Constants.TRASH);
+                    break;
+                case R.id.recycle:
+                    processAction(Constants.RECYCLE);
+                    break;
+                case R.id.cancel:
+                    processAction(Constants.CANCEL);
+                    break;
+            }
+            return true;
+        }
+        return super.onMenuItemSelected(featureId, item);
+    }
 }
