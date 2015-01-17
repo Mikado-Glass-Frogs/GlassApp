@@ -13,6 +13,7 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.AdapterView;
+import android.widget.Toast;
 
 import com.google.android.glass.app.Card;
 import com.google.android.glass.touchpad.Gesture;
@@ -21,19 +22,25 @@ import com.google.android.glass.view.WindowUtils;
 import com.google.android.glass.widget.CardScrollAdapter;
 import com.google.android.glass.widget.CardScrollView;
 import com.mirasense.scanditsdk.ScanditSDKAutoAdjustingBarcodePicker;
+import com.mirasense.scanditsdk.interfaces.ScanditSDK;
+import com.mirasense.scanditsdk.interfaces.ScanditSDKListener;
 
 
 /**
  * Scanner Activity - detects barcode and sends data to server for processing.
  */
-public class ScannerActivity extends Activity {
+public class ScannerActivity extends Activity implements ScanditSDKListener {
 
     /**
      * {@link CardScrollView} to use as the main content view.
      */
-    private CardScrollView mCardScroller;
+    private CardScrollView mCardScroller; // replaceme
     private GestureDetector mGestureDetector;
     private View mView;
+
+    // The main object for recognizing a displaying barcodes.
+    private ScanditSDK mBarcodePicker;
+
 
     @Override
     protected void onCreate(Bundle bundle) {
@@ -83,11 +90,21 @@ public class ScannerActivity extends Activity {
         });
 
         mGestureDetector = createGestureDetector(this);
-        setContentView(mCardScroller);
+        //setContentView(mCardScroller);
 
-        ScanditSDKAutoAdjustingBarcodePicker picker = new ScanditSDKAutoAdjustingBarcodePicker(
+        ScanditSDKAutoAdjustingBarcodePicker mBarcodePicker = new ScanditSDKAutoAdjustingBarcodePicker(
                 this, Constants.scanditSdkAppKey, ScanditSDKAutoAdjustingBarcodePicker.CAMERA_FACING_FRONT); // or facing back?
 
+
+        // TODO add menu listener
+
+        mBarcodePicker.get
+
+        mBarcodePicker.getOverlayView().addListener(this);
+
+
+        // set the view to the barcode picker
+        setContentView(mBarcodePicker);
 
     }
 
@@ -207,5 +224,31 @@ public class ScannerActivity extends Activity {
             return true;
         }
         return super.onMenuItemSelected(featureId, item);
+    }
+
+    @Override
+    public void didCancel() {
+        mBarcodePicker.stopScanning();
+        finish();
+    }
+
+    @Override
+    public void didScanBarcode(String barcode, String symbology) {
+        // Remove non-relevant characters that might be displayed as rectangles
+        // on some devices. Be aware that you normally do not need to do this.
+        // Only special GS1 code formats contain such characters.
+        String cleanedBarcode = "";
+        for (int i = 0 ; i < barcode.length(); i++) {
+            if (barcode.charAt(i) > 30) {
+                cleanedBarcode += barcode.charAt(i);
+            }
+        }
+        Toast.makeText(this, symbology + ": " + cleanedBarcode, Toast.LENGTH_LONG).show();
+        Log.d(Constants.TAG, symbology + ": " + cleanedBarcode);
+    }
+
+    @Override
+    public void didManualSearch(String s) {
+        // not used
     }
 }
