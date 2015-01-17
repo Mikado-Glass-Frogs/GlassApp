@@ -3,6 +3,13 @@
 
     <string name="app_name">SmartCan</string>
     <string name="title_activity_scanner">Scan Barcode</string>
-    <string name="hello_world">Hello world!</string>
+    <string name="voice_trigger">Trash this</string> <!-- custom voice trigger for app -->
+
+    <!-- menu in scanner -->
+    <string name="trash">Trash</string>
+    <string name="recycle">Recycle</string>
+    <string name="cancel">Cancel</string>
+
+
 
 </resources>
