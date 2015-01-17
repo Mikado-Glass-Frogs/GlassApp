@@ -61,8 +61,8 @@ public class ScannerActivity extends Activity {
 
         Log.d(Constants.TAG, "about to read image");
 
-        int testImageCount = 6;
-        for (int i = 0; i < testImageCount; i++) {
+        int testImageCount = 5;
+        for (int i = 0; i <= testImageCount; i++) {
             Log.d(Constants.TAG, "reading image number " + Integer.toString(i));
             readImage(i);
         }
@@ -178,7 +178,7 @@ public class ScannerActivity extends Activity {
         }
 
         String decodedCode = readCode(fileData, charset, hintMap);
-        Log.d(Constants.TAG, String.format("Data read from code # %d: " + decodedCode));
+        Log.d(Constants.TAG, String.format("Data read from code #%d: %s ", num, decodedCode));
         return decodedCode;
     }
 
