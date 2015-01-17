@@ -194,12 +194,22 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
 
             // branch here based on second value of text - either trash or recycle
 
-            String[] params = text.split(",");
-            int uid = Integer.parseInt(params[0]);
-
-            int code = Integer.parseInt(params[1]);
-            Log.d(TAG, String.format("UID: %d, code: %d \n", uid, code));
+            // idiot proofing
+            int uid;
+            int code;
             String prompt = "";
+            try {
+                String[] params = text.split(",");
+                if (params.length != 2) {
+                    throw new Exception();
+                }
+                uid = Integer.parseInt(params[0]);
+                code = Integer.parseInt(params[1]);
+                Log.d(TAG, String.format("UID: %d, code: %d \n", uid, code));
+            } catch (Exception e) { // catch format errors - not ints, no commas, etc
+                code = -1; // set bad code
+            }
+
 
             switch (code) {
                 case 0:
@@ -213,20 +223,24 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
             }
 
             // post to local edison - make it ready
+            // TODO figure out how to POST a json in android/java
             
             // POST to mongo server - this user, and the uid of the item, plus the code (in case we haven't seen it yet
             // TODO
 
-
-
-            statusView.setText(prompt);
-            statusView.setTextSize(TypedValue.COMPLEX_UNIT_SP, Math.max(14, 56 - text.length() / 4));
-            statusView.setVisibility(View.VISIBLE);
+            SetStatusText(prompt);
             this.result = result;
         }
     }
 
-  private void handleResult(Result result) { // TODO edit me - maybe do intent on www.trashcan.io? automatic POST, etc?
+    private void SetStatusText(String message) {
+        TextView statusView = (TextView) findViewById(R.id.status_view);
+        statusView.setText(message);
+        statusView.setTextSize(TypedValue.COMPLEX_UNIT_SP, Math.max(14, 56 - message.length() / 4));
+        statusView.setVisibility(View.VISIBLE);
+    }
+
+    private void handleResult(Result result) { // TODO edit me - maybe do intent on www.trashcan.io? automatic POST, etc?
     Log.d("QR RESULT", "handling result");
     ParsedResult parsed = ResultParser.parseResult(result);
     Intent intent;
@@ -322,8 +336,11 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
                 case R.id.cancel:
                     closeOptionsMenu();
                     break;
+                case R.id.scan_again:
+                    reset();
+                    break;
                 case R.id.quit_app:
-                    finish();
+                    quitApp();
                     break;
             }
             return true;
@@ -336,6 +353,14 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
      *  */
     private void findSmartcan() {
         Log.d(Constants.TAG, "locating smartcan");
+    }
+
+    /** Used to quit app and clear all state. */
+    private void quitApp() {
+        Intent homeIntent = new Intent(Intent.ACTION_MAIN);
+        homeIntent.addCategory( Intent.CATEGORY_HOME );
+        homeIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        startActivity(homeIntent);
     }
 
     /**

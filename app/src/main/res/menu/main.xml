@@ -2,6 +2,8 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:id="@+id/find_smartcan"
         android:title="@string/find_smartcan" />
+    <item android:id="@+id/scan_again"
+        android:title="@string/scan_again" />
     <item android:id="@+id/cancel"
         android:title="@string/cancel" />
     <item android:id="@+id/quit_app"
