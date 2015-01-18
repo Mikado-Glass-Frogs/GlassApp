@@ -243,9 +243,6 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
     /** Performs an async JSON POST to an intel edison nodejs server on a smart trash can. */
     private void sendToSmartCan(String text) {
         Log.d(TAG, text);
-        //JsonObject json = new JsonObject();
-        //json.addProperty("scanned_item", text);
-        // json.addProperty("user", /* user ID here */);
 
         String posturl = String.format("http://%s:%d", Constants.smartCanIP1, Constants.smartCanPort1);
 
@@ -254,7 +251,7 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
                 posturl += "/trash";
                 break;
             case RECYCLE_ID:
-                //posturl += "/recycle";
+                posturl += "/recycle";
                 break;
             default:
                 return;
@@ -263,33 +260,20 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
 
         // Instantiate the RequestQueue.
         RequestQueue queue = Volley.newRequestQueue(this);
-        //String url ="http://www.google.com";
-
-// Request a string response from the provided URL.
         StringRequest stringRequest = new StringRequest(Request.Method.GET, posturl,
                 new Response.Listener() {
-                    //@Override
-                    public void onResponse(String response) {
-                        // ignore
-                    }
-
                     @Override
                     public void onResponse(Object o) {
                         // ignore
                     }
                 }, new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        // ignore
-                    }
-                });
-// Add the request to the RequestQueue.
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                // ignore
+            }
+        });
+        // Add the request to the RequestQueue.
         queue.add(stringRequest);
-
-
-
-
-
     }
 
     private void SetStatusText(String message) {
