@@ -45,7 +45,15 @@ import com.google.zxing.client.result.ResultParser;
 import com.google.zxing.client.result.TextParsedResult;
 import com.google.zxing.client.result.URIParsedResult;
 
+import org.apache.http.HttpResponse;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
+
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 /**
  * @author Sean Owen, heavily modified by Ivan Smirnov for PennApps 2015
@@ -62,6 +70,11 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
   private DecodeRunnable decodeRunnable;
   private Result result;
   private GestureDetector mGestureDetector;
+
+    // constants for message passing
+    private final int TRASH_ID = 0;
+    private final int RECYCLE_ID = 1;
+    private final int ERROR_ID = -1;
 
   @Override
   public void onCreate(Bundle icicle) {
@@ -202,15 +215,15 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
                 code = Integer.parseInt(params[1]);
                 Log.d(TAG, String.format("UID: %d, code: %d \n", uid, code));
             } catch (Exception e) { // catch format errors - not ints, no commas, etc
-                code = -1; // set bad code
+                code = ERROR_ID; // set bad code
             }
 
 
             switch (code) {
-                case 0:
+                case TRASH_ID:
                     prompt = "Alas, this is trash!";
                     break;
-                case 1:
+                case RECYCLE_ID:
                     prompt = "Yay! This can be recycled";
                     break;
                 default:
@@ -219,13 +232,62 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
 
             // post to local edison - make it ready
             // TODO figure out how to POST a json in android/java
-            
-            
+            sendToSmartCan(text);
+
             // POST to mongo server - this user, and the uid of the item, plus the code (in case we haven't seen it yet
             // TODO
 
             SetStatusText(prompt);
             this.result = result;
+        }
+    }
+
+    /** Performs an async JSON POST to an intel edison nodejs server on a smart trash can. */
+    private void sendToSmartCan(String text) {
+        Log.d(TAG, text);
+        //JsonObject json = new JsonObject();
+        //json.addProperty("scanned_item", text);
+        // json.addProperty("user", /* user ID here */);
+
+        String posturl = String.format("http://%s:%d", Constants.smartCanIP1, Constants.smartCanPort1);
+
+        switch (Integer.parseInt(text.split(",")[1])) {
+            case TRASH_ID:
+                posturl += "/trash";
+                break;
+            case RECYCLE_ID:
+                //posturl += "/recycle";
+                break;
+            default:
+                return;
+        }
+
+        /*
+        Ion.with(getBaseContext()).
+                load(posturl)
+                .setJsonObjectBody(json)
+                .asJsonObject()
+                .setCallback(new FutureCallback<JsonObject>() {
+                    @Override
+                    public void onCompleted(Exception e, JsonObject result) {
+                        // do stuff with the result or error
+                    }
+                });
+                */
+        // Ion not working, try simple get
+        try {
+            HttpClient client = new DefaultHttpClient();
+            HttpGet request = new HttpGet();
+            request.setURI(new URI(posturl));
+            HttpResponse response = client.execute(request);
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        } catch (ClientProtocolException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
         }
     }
 
