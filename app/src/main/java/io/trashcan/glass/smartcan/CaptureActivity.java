@@ -35,6 +35,12 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.TextView;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 import com.google.android.glass.touchpad.Gesture;
 import com.google.android.glass.touchpad.GestureDetector;
 import com.google.android.glass.view.WindowUtils;
@@ -45,15 +51,7 @@ import com.google.zxing.client.result.ResultParser;
 import com.google.zxing.client.result.TextParsedResult;
 import com.google.zxing.client.result.URIParsedResult;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.DefaultHttpClient;
-
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 
 /**
  * @author Sean Owen, heavily modified by Ivan Smirnov for PennApps 2015
@@ -262,33 +260,36 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
                 return;
         }
 
-        /*
-        Ion.with(getBaseContext()).
-                load(posturl)
-                .setJsonObjectBody(json)
-                .asJsonObject()
-                .setCallback(new FutureCallback<JsonObject>() {
+
+        // Instantiate the RequestQueue.
+        RequestQueue queue = Volley.newRequestQueue(this);
+        //String url ="http://www.google.com";
+
+// Request a string response from the provided URL.
+        StringRequest stringRequest = new StringRequest(Request.Method.GET, posturl,
+                new Response.Listener() {
+                    //@Override
+                    public void onResponse(String response) {
+                        // ignore
+                    }
+
                     @Override
-                    public void onCompleted(Exception e, JsonObject result) {
-                        // do stuff with the result or error
+                    public void onResponse(Object o) {
+                        // ignore
+                    }
+                }, new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        // ignore
                     }
                 });
-                */
-        // Ion not working, try simple get
-        try {
-            HttpClient client = new DefaultHttpClient();
-            HttpGet request = new HttpGet();
-            request.setURI(new URI(posturl));
-            HttpResponse response = client.execute(request);
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
-        } catch (ClientProtocolException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+// Add the request to the RequestQueue.
+        queue.add(stringRequest);
+
+
+
+
+
     }
 
     private void SetStatusText(String message) {

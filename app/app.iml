@@ -87,6 +87,7 @@
     <orderEntry type="library" exported="" name="zxing-android-integration-2.0.1" level="project" />
     <orderEntry type="library" exported="" name="core-3.0.1" level="project" />
     <orderEntry type="library" exported="" name="scanditsdk-barcodepicker-android-4.3.3" level="project" />
+    <orderEntry type="library" exported="" name="library-aar-1.0.0" level="project" />
   </component>
 </module>
 
